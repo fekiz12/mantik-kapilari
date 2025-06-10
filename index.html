@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çocuklar İçin Mantık Kapıları Öğretim Kartı Projesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Playful Harmony -->
+    <!-- Application Structure Plan: Projenin akademik yapısını, daha ilgi çekici ve etkileşimli bir dijital deneyime dönüştürmek için doğrusal olmayan, tematik bir bölüm yapısı tasarladım. Yapı şu şekildedir: 1) Projeyi anında tanıtan bir 'Giriş' bölümü. 2) Projenin 'Neden'ini açıklayan, Motivasyon ve Argümanı birleştiren bir 'Neden Bu Proje?' bölümü. 3) Projenin kalbi olan, kullanıcıların mantık kapılarıyla oynayabildiği interaktif bir 'Kartları Keşfet' bölümü. 4) Akademik detayları (süreç, sonuçlar, Q&A) barındıran bir 'Proje Detayları' bölümü. Bu yapı, kullanıcının bilgiyi pasif olarak okumak yerine aktif olarak keşfetmesini teşvik ederek hem çocukların hem de yetişkinlerin ilgisini çekmeyi hedefler. -->
+    <!-- Visualization & Content Choices: Projenin farklı yönlerini en etkili şekilde sunmak için çeşitli interaktif elemanlar seçildi. 'Kartları Keşfet' bölümünde, mantık kapılarını öğretmek için Vanilya JS ile yapılmış interaktif anahtar ve lamba simülasyonları kullanıldı; bu, projenin 'öğretim kartı' konseptini doğrudan dijitalleştirir ve SVG/resim kullanımından kaçınır. 'Proje Detayları' bölümünde, varsayımsal kullanıcı geri bildirimlerini göstermek için Chart.js ile bir çubuk grafik oluşturuldu; bu, projenin sonuçlarını nicel olarak görselleştirir. Proje Q&A'sı için, okunabilirliği artırmak ve yerden tasarruf etmek amacıyla tıklanabilir bir akordeon yapısı tercih edildi. Bu seçimler, kullanıcı etkileşimini en üst düzeye çıkarmak ve bilgiyi sindirilebilir parçalara ayırmak için yapılmıştır. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #FEFBF6; }
+        .bg-cream { background-color: #FEFBF6; }
+        .bg-sage { background-color: #A6B1E1; }
+        .bg-peach { background-color: #FAD2E1; }
+        .text-navy { color: #424874; }
+        .text-peach-dark { color: #D9AAB7; }
+        .hover\:text-peach:hover { color: #FAD2E1; }
+        .shadow-peach { box-shadow: 0 10px 15px -3px rgba(247, 202, 201, 0.3), 0 4px 6px -2px rgba(247, 202, 201, 0.15); }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .gate-switch { width: 64px; height: 32px; background-color: #D1D5DB; border-radius: 9999px; position: relative; cursor: pointer; transition: background-color 0.3s ease; }
+        .gate-switch.on { background-color: #82C3A3; }
+        .gate-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 28px; height: 28px; background-color: white; border-radius: 9999px; transition: transform 0.3s ease; }
+        .gate-switch.on::after { transform: translateX(32px); }
+        .gate-bulb { width: 50px; height: 50px; border-radius: 50%; background-color: #E5E7EB; border: 3px solid #9CA3AF; transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+        .gate-bulb.on { background-color: #FBBF24; box-shadow: 0 0 15px 5px rgba(251, 191, 36, 0.7); }
+        .truth-table td, .truth-table th { border: 1px solid #E5E7EB; padding: 8px; }
+        .truth-table td.active { background-color: #FAD2E1; transition: background-color 0.3s ease; }
+    </style>
+</head>
+<body class="bg-cream text-navy">
+
+    <header class="sticky top-0 z-50 bg-cream/80 backdrop-blur-sm shadow-md">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-extrabold text-2xl">Mantık Kapıları</div>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="#neden" class="hover:text-peach-dark transition-colors">Neden Bu Proje?</a>
+                <a href="#kesfet" class="hover:text-peach-dark transition-colors">Kartları Keşfet</a>
+                <a href="#detaylar" class="hover:text-peach-dark transition-colors">Proje Detayları</a>
+            </div>
+            <div class="md:hidden">
+                <select id="mobile-nav" class="bg-white border border-gray-300 rounded-md p-2 text-navy">
+                    <option value="#home">Ana Sayfa</option>
+                    <option value="#neden">Neden?</option>
+                    <option value="#kesfet">Keşfet</option>
+                    <option value="#detaylar">Detaylar</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <main id="home">
+        <section class="container mx-auto px-6 py-20 text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">Çocuklar İçin <br><span class="text-peach-dark">Mantık Kapıları</span> Öğretim Kartı</h1>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-8">Bu proje, dijital dünyanın temelini oluşturan soyut mantık kapısı kavramlarını, çocuklar için eğlenceli ve etkileşimli öğretim kartlarına dönüştürüyor.</p>
+            <a href="#kesfet" class="bg-sage text-white font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all shadow-lg text-lg">Hemen Keşfetmeye Başla!</a>
+        </section>
+
+        <section id="neden" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Neden Bu Proje?</h2>
+                <div class="max-w-4xl mx-auto text-left text-gray-700 space-y-6">
+                   <p class="text-lg leading-relaxed">Bu bölüm, projenin ardındaki motivasyonu ve pedagojik temelleri açıklamaktadır. Erken yaşta teknoloji ve bilimle tanışmanın önemi gün geçtikçe artarken, bilgisayar bilimlerinin temelini oluşturan mantık gibi soyut konuları çocuklara anlatmak zorlayıcı olabilmektedir. Bu proje, tam da bu noktada devreye girerek, karmaşık mantık kapısı kavramlarını, çocukların dokunabileceği, oynayabileceği ve kolayca anlayabileceği somut, görsel ve etkileşimli materyallere dönüştürmeyi amaçlamaktadır.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 mt-12 text-center">
+                    <div class="bg-cream p-6 rounded-xl shadow-md">
+                        <div class="text-5xl mb-4">💡</div>
+                        <h3 class="text-xl font-bold mb-2">Soyutu Somutlaştırma</h3>
+                        <p class="text-gray-600">Mantık kapılarının soyut kurallarını, çocukların anlayabileceği basit, görsel ve oyunlaştırılmış analojilerle somutlaştırıyoruz.</p>
+                    </div>
+                    <div class="bg-cream p-6 rounded-xl shadow-md">
+                        <div class="text-5xl mb-4">🎮</div>
+                        <h3 class="text-xl font-bold mb-2">Oyun Temelli Öğrenme</h3>
+                        <p class="text-gray-600">Etkileşimli kartlar, öğrenmeyi pasif bir aktivite olmaktan çıkarıp çocukların aktif katılım sağladığı bir oyuna dönüştürüyor.</p>
+                    </div>
+                    <div class="bg-cream p-6 rounded-xl shadow-md">
+                        <div class="text-5xl mb-4">🚀</div>
+                        <h3 class="text-xl font-bold mb-2">Geleceğin Yetkinlikleri</h3>
+                        <p class="text-gray-600">Çocuklarda erken yaşta problem çözme, algoritmik düşünme ve teknoloji okuryazarlığı gibi temel becerileri teşvik ediyoruz.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="kesfet" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-2">Kartları Keşfet</h2>
+                <p class="text-lg text-center text-gray-600 mb-12 max-w-3xl mx-auto">Bu bölüm, projenin kalbidir. Burada, tasarlanan öğretim kartlarının dijital ve interaktif bir versiyonunu deneyimleyebilirsiniz. Aşağıdan bir mantık kapısı seçin ve anahtarları açıp kapatarak lambanın nasıl tepki verdiğini gözlemleyin. Her kapının nasıl çalıştığını ve doğruluk tablosunu keşfedin.</p>
+                <div id="gate-selector" class="flex justify-center flex-wrap gap-4 mb-12">
+                </div>
+
+                <div id="gate-display" class="bg-white p-8 rounded-2xl shadow-peach min-h-[400px] flex flex-col lg:flex-row items-center justify-around gap-8">
+                </div>
+            </div>
+        </section>
+
+        <section id="detaylar" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Proje Süreci ve Sonuçlar</h2>
+                <div class="max-w-4xl mx-auto text-left text-gray-700 space-y-6 mb-16">
+                   <p class="text-lg leading-relaxed">Bu bölümde, projenin akademik arka planı, tasarım süreci, elde edilen sonuçlar ve gelecek potansiyeli sunulmaktadır. Proje, belirli bir pedagojik yaklaşımla, hedef kitle olan çocukların bilişsel seviyeleri göz önünde bulundurularak tasarlanmıştır. Elde edilen prototipler ve varsayımsal kullanıcı testlerinden elde edilen veriler, projenin başarısını ve gelişim alanlarını göstermektedir.</p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-16 items-start">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4">Varsayımsal Kullanıcı Testi Sonuçları</h3>
+                        <p class="text-gray-600 mb-6">Kartlar, 7-10 yaş arası bir grup çocukla test edildiğinde, anlaşılırlık ve eğlence faktörleri üzerine aşağıdaki gibi varsayımsal veriler elde edilmiştir. Bu grafik, temel kapıların kolayca anlaşıldığını, terslenmiş kapıların ise biraz daha zorlayıcı olabildiğini göstermektedir.</p>
+                        <div class="chart-container bg-cream p-4 rounded-xl shadow-md">
+                            <canvas id="resultsChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4">Proje Değerlendirmesi (Soru-Cevap)</h3>
+                        <div id="accordion-container" class="space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-navy text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <h3 class="text-2xl font-bold mb-4">Proje Geliştiricileri & İletişim</h3>
+            <div class="flex justify-center items-center flex-wrap gap-x-8 gap-y-4 mb-6">
+                <div>
+                    <p class="font-bold">Cengiz EKMEKÇİ</p>
+                    <a href="mailto:ekmekcicengiz64@gmail.com" class="text-gray-300 hover:text-white transition-colors underline">ekmekcicengiz64@gmail.com</a>
+                </div>
+                <div>
+                    <p class="font-bold">Furkan EKİZ</p>
+                    <a href="mailto:ekizfurkan2002@gmail.com" class="text-gray-300 hover:text-white transition-colors underline">ekizfurkan2002@gmail.com</a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-6 mt-6">
+                 <p class="text-sm text-gray-400 mb-2">Süleyman Demirel Üniversitesi | Mühendislik Fakültesi | Bilgisayar Mühendisliği Tasarım Projeleri Sergisi</p>
+                 <p class="text-sm text-gray-500">© 2025 Cengiz EKMEKÇİ & Furkan EKİZ. Tüm Hakları Saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gateData = {
+                and: {
+                    name: 'VE (AND)',
+                    icon: '🤝',
+                    description: 'Bu kapının çalışması için **her iki** anahtarın da açık (1) olması gerekir. Tıpkı iki arkadaşın el sıkışması gibi, ikisi de hazır olmalı!',
+                    logic: (a, b) => a && b
+                },
+                or: {
+                    name: 'VEYA (OR)',
+                    icon: '🤗',
+                    description: 'Bu kapının çalışması için anahtarlardan **en az birinin** açık (1) olması yeterlidir. Tıpkı bir kucaklaşma gibi, bir tarafın uzanması yeter!',
+                    logic: (a, b) => a || b
+                },
+                not: {
+                    name: 'DEĞİL (NOT)',
+                    icon: '🙃',
+                    description: 'Bu kapı her şeyi tersine çevirir! Anahtar açıksa (1) lamba söner, kapalıysa (0) lamba yanar. Tam bir zıtlık ustası!',
+                    logic: (a) => !a
+                },
+                nand: {
+                    name: 'VEDEĞİL (NAND)',
+                    icon: '🚫🤝',
+                    description: 'VE kapısının tam tersi! Lamba, sadece her iki anahtar da açıkken (1) söner. Diğer tüm durumlarda yanıktır.',
+                    logic: (a, b) => !(a && b)
+                },
+                nor: {
+                    name: 'VEYADEĞİL (NOR)',
+                    icon: '🚫🤗',
+                    description: 'VEYA kapısının tam tersi! Lamba, sadece her iki anahtar da kapalıyken (0) yanar. Diğer durumlarda sönüktür.',
+                    logic: (a, b) => !(a || b)
+                }
+            };
+
+            const qnaData = [
+                { q: 'Projede hedeflere ne ölçüde ulaşıldı?', a: 'AND, OR, NOT, NAND ve NOR kapıları için 5 adet interaktif öğretim kartı konsepti başarıyla dijital ortama aktarılmış ve interaktif prototipleri üretilmiştir. Temel hedeflere ulaşılmıştır.' },
+                { q: 'Projenin bitirilemeyen kısımları nelerdir?', a: 'Geniş çaplı, gerçek kullanıcı testlerinin yapılması gelecek aşamalara bırakılmıştır. Ayrıca fiziksel prototiplerin üretimi de bir sonraki adımdır.' },
+                { q: 'Projede karşılaşılan zorluklar nelerdi?', a: 'En büyük zorluk, soyut mantık kavramlarını çocukların bilişsel seviyesine indirgerken teknik doğruluğu korumak ve etkileşimli arayüzü hem basit hem de eğitici kılmaktı.' },
+                { q: 'Gelecekte ne gibi çalışmalar yürütülebilir?', a: 'Kart setini genişletmek, bu kartlarla uyumlu bir mobil oyun geliştirmek ve okullarda kullanılması için bir öğretmen kılavuzu hazırlamak potansiyel gelecek çalışmalardır.' }
+            ];
+
+            const gateSelector = document.getElementById('gate-selector');
+            const gateDisplay = document.getElementById('gate-display');
+            let activeGate = 'and';
+            let inputA = false;
+            let inputB = false;
+
+            function renderGateSelector() {
+                gateSelector.innerHTML = '';
+                const gateOrder = ['and', 'or', 'not', 'nand', 'nor'];
+                gateOrder.forEach(key => {
+                    const gate = gateData[key];
+                    const button = document.createElement('button');
+                    button.dataset.gate = key;
+                    button.className = `px-6 py-2 rounded-full font-bold transition-all ${key === activeGate ? 'bg-peach text-navy shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`;
+                    button.textContent = gate.name;
+                    button.onclick = () => {
+                        activeGate = key;
+                        inputA = false;
+                        inputB = false;
+                        render();
+                    };
+                    gateSelector.appendChild(button);
+                });
+            }
+
+            function renderGateDisplay() {
+                const gate = gateData[activeGate];
+                let inputsHTML = '';
+                if (activeGate === 'not') {
+                    inputsHTML = `
+                        <div class="flex flex-col items-center">
+                            <span class="font-bold mb-2">Giriş A</span>
+                            <div id="switchA" class="gate-switch ${inputA ? 'on' : ''}"></div>
+                        </div>
+                    `;
+                } else {
+                    inputsHTML = `
+                        <div class="flex flex-col items-center">
+                            <span class="font-bold mb-2">Giriş A</span>
+                            <div id="switchA" class="gate-switch ${inputA ? 'on' : ''}"></div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="font-bold mb-2">Giriş B</span>
+                            <div id="switchB" class="gate-switch ${inputB ? 'on' : ''}"></div>
+                        </div>
+                    `;
+                }
+                
+                const output = gate.logic(inputA, inputB);
+
+                gateDisplay.innerHTML = `
+                    <div class="w-full lg:w-1/3 text-center lg:text-left">
+                        <div class="text-7xl mb-4 text-center">${gate.icon}</div>
+                        <h3 class="text-3xl font-bold mb-2">${gate.name}</h3>
+                        <p class="text-gray-600 leading-relaxed">${gate.description}</p>
+                    </div>
+                    <div class="w-full lg:w-2/3 flex flex-col items-center justify-center gap-8">
+                        <div class="flex items-center justify-center gap-8">
+                            ${inputsHTML}
+                            <div class="text-4xl font-bold text-gray-300">→</div>
+                            <div class="flex flex-col items-center">
+                                <span class="font-bold mb-2">Çıkış</span>
+                                <div class="gate-bulb ${output ? 'on' : ''}"></div>
+                            </div>
+                        </div>
+                        ${renderTruthTable(gate.logic, activeGate, inputA, inputB)}
+                    </div>
+                `;
+
+                const switchA = document.getElementById('switchA');
+                if(switchA) switchA.onclick = () => { inputA = !inputA; render(); };
+                
+                const switchB = document.getElementById('switchB');
+                if(switchB) switchB.onclick = () => { inputB = !inputB; render(); };
+            }
+            
+            function renderTruthTable(logicFn, gateKey, currentA, currentB) {
+                let header = '<th>Giriş A</th><th>Giriş B</th><th>Çıkış</th>';
+                let rows = [
+                    [0, 0], [0, 1], [1, 0], [1, 1]
+                ];
+
+                if (gateKey === 'not') {
+                    header = '<th>Giriş</th><th>Çıkış</th>';
+                    rows = [[0], [1]];
+                }
+
+                let tableRowsHTML = rows.map(row => {
+                    const output = logicFn(row[0], row[1] !== undefined ? row[1] : null);
+                    const isActive = gateKey === 'not' ? (row[0] == currentA) : (row[0] == currentA && row[1] == currentB);
+                    const rowClass = isActive ? 'active' : '';
+                    
+                    if (gateKey === 'not') {
+                        return `<tr class="${rowClass}"><td>${row[0]}</td><td>${output ? 1 : 0}</td></tr>`;
+                    }
+                    return `<tr class="${rowClass}"><td>${row[0]}</td><td>${row[1]}</td><td>${output ? 1 : 0}</td></tr>`;
+                }).join('');
+
+                return `
+                    <div class="w-full max-w-xs">
+                        <h4 class="font-bold text-center mb-2">Doğruluk Tablosu</h4>
+                        <table class="w-full text-center truth-table border-collapse">
+                            <thead><tr class="bg-sage text-white">${header}</tr></thead>
+                            <tbody class="bg-cream">${tableRowsHTML}</tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            function renderAccordion() {
+                const container = document.getElementById('accordion-container');
+                container.innerHTML = '';
+                qnaData.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <button class="w-full text-left font-bold p-4 bg-cream rounded-t-lg hover:bg-gray-200 transition flex justify-between items-center" data-index="${index}">
+                            <span>${item.q}</span>
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </button>
+                        <div class="overflow-hidden transition-all duration-500 ease-in-out max-h-0">
+                            <p class="p-4 bg-gray-50 rounded-b-lg text-gray-700">${item.a}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+
+                container.addEventListener('click', (e) => {
+                    const button = e.target.closest('button');
+                    if(button) {
+                        const content = button.nextElementSibling;
+                        const icon = button.querySelector('span:last-child');
+                        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+                            content.style.maxHeight = '0px';
+                            icon.style.transform = 'rotate(0deg)';
+                        } else {
+                            document.querySelectorAll('#accordion-container .overflow-hidden').forEach(el => el.style.maxHeight = '0px');
+                             document.querySelectorAll('#accordion-container button span:last-child').forEach(el => el.style.transform = 'rotate(0deg)');
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            icon.style.transform = 'rotate(180deg)';
+                        }
+                    }
+                });
+            }
+            
+            function renderChart() {
+                const ctx = document.getElementById('resultsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['VE (AND)', 'VEYA (OR)', 'DEĞİL (NOT)', 'VEDEĞİL (NAND)', 'VEYADEĞİL (NOR)'],
+                        datasets: [{
+                            label: 'Anlaşılırlık (10 üzerinden)',
+                            data: [9, 8, 9, 7, 6],
+                            backgroundColor: '#A6B1E1',
+                            borderColor: '#424874',
+                            borderWidth: 1
+                        }, {
+                            label: 'Eğlence (10 üzerinden)',
+                            data: [7, 8, 9, 8, 8],
+                            backgroundColor: '#FAD2E1',
+                            borderColor: '#D9AAB7',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, max: 10 }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: (context) => context[0].dataset.label,
+                                    label: (context) => `${context.chart.data.labels[context.dataIndex]}: ${context.formattedValue}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function render() {
+                renderGateSelector();
+                renderGateDisplay();
+            }
+            
+            document.getElementById('mobile-nav').addEventListener('change', (e) => {
+                window.location.hash = e.target.value;
+            });
+
+            render();
+            renderAccordion();
+            renderChart();
+        });
+    </script>
+</body>
+</html>
